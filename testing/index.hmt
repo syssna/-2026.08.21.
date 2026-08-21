@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일본어 단어 랭크업</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@500;700;800;900&display=swap');
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:'Noto Sans KR',sans-serif;background:#f4efe5;color:#252525}
+.app{width:min(850px,92%);margin:28px auto}.screen{display:none;animation:up .35s ease}.screen.active{display:block}
+@keyframes up{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
+.card{background:#fff;border:3px solid #252525;border-radius:24px;box-shadow:7px 7px #252525;padding:36px}
+.start{text-align:center;padding:45px 28px}.logo{font-size:62px}.title{font-family:Jua;font-size:clamp(43px,8vw,70px);line-height:1.05;margin:12px 0}.red{color:#d94b4b;text-shadow:2px 2px #252525}.blue{color:#4477bb;text-shadow:2px 2px #252525}.sub{line-height:1.8;font-weight:700;color:#555}.levels{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:25px}.level{padding:7px 13px;border:2px solid #252525;border-radius:50px;font-weight:900}.n5{background:#ffd9d9}.n4{background:#d9e8ff}.n3{background:#dff1d8}.n2{background:#fff0bd}.n1{background:#e6d9ff}
+.btn{border:3px solid #252525;background:#4477bb;color:#fff;border-radius:15px;padding:14px 30px;font:900 19px inherit;cursor:pointer;box-shadow:4px 4px #252525}.btn:hover{transform:translate(2px,2px);box-shadow:2px 2px #252525}
+.top{display:flex;justify-content:space-between;font-weight:900}.rankline{display:flex;justify-content:space-between;align-items:center;margin:12px 0 7px;font-weight:900}.rank{font-family:Jua;font-size:25px}.bar{height:14px;background:#e8e8e8;border:2px solid #252525;border-radius:20px;overflow:hidden}.fill{height:100%;width:0;background:#d94b4b;transition:.3s}.wordbox{text-align:center;background:#f8f3e9;border:3px solid #252525;border-radius:20px;padding:27px;margin:27px 0 20px}.word{font-size:53px;font-weight:900}.reading{font-size:19px;color:#777;margin-top:8px}.question{font-family:Jua;font-size:27px;text-align:center;margin:18px 0 24px}.answers{display:grid;gap:12px}.answer{border:3px solid #252525;background:#fff;border-radius:15px;padding:16px;text-align:left;font:700 17px inherit;cursor:pointer;box-shadow:4px 4px #252525}.answer:hover{background:#fff0b8;transform:translate(2px,2px);box-shadow:2px 2px #252525}
+.result{text-align:center}.bigscore{font-family:Jua;font-size:64px;color:#d94b4b}.promotion{background:#fff0bd;border:3px dashed #252525;border-radius:18px;padding:20px;margin:20px 0;font-weight:800;line-height:1.7}.review{text-align:left;margin-top:25px}.review div{padding:12px;border-bottom:1px solid #ddd;line-height:1.6}.good{color:#26734d}.bad{color:#c53d3d}.small{font-size:12px;color:#777;line-height:1.6}.history{margin-top:20px;text-align:left;background:#f8f3e9;border-radius:16px;padding:16px}.history p{margin:7px 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="start" class="screen active">
+<div class="card start">
+<div class="logo">🇯🇵 📚 ⚔️</div>
+<h1 class="title"><span class="red">일본어 단어</span><br><span class="blue">랭크업 훈련소</span></h1>
+<p class="sub">문제를 풀고 실력이 올라가면<br>자동으로 더 어려운 단어에 도전합니다!</p>
+<div class="levels"><span class="level n5">N5</span><span class="level n4">N4</span><span class="level n3">N3</span><span class="level n2">N2</span><span class="level n1">N1</span></div>
+<button class="btn" onclick="newRun()">🔥 훈련 시작</button>
+<p class="small">※ JLPT에는 공식적인 고정 어휘 목록이 공개되어 있지 않으므로 레벨별 단어는 학습용으로 구성했습니다.</p>
+</div>
+</section>
+
+<section id="quiz" class="screen">
+<div class="card">
+<div class="top"><span id="num"></span><span id="percent"></span></div>
+<div class="rankline"><span class="rank" id="rank"></span><span id="progressText"></span></div>
+<div class="bar"><div class="fill" id="fill"></div></div>
+<div class="wordbox"><div class="word" id="word"></div><div class="reading" id="reading"></div></div>
+<div class="question" id="question"></div>
+<div class="answers" id="answers"></div>
+</div>
+</section>
+
+<section id="result" class="screen">
+<div class="card result">
+<h2>🏆 이번 훈련 결과</h2>
+<div class="bigscore" id="score"></div>
+<div id="feedback"></div>
+<div class="promotion" id="promotion"></div>
+<div class="review"><h3>📚 이번에 복습할 단어</h3><div id="review"></div></div>
+<div class="history"><strong>📈 현재 랭크</strong><p id="currentRank"></p><p id="bestRank"></p></div>
+<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:25px">
+<button class="btn" onclick="continueTraining()">⚔️ 다음 훈련</button>
+<button class="btn" style="background:#d94b4b" onclick="newRun()">🏠 처음부터</button>
+</div>
+</div>
+</section>
+</div>
+
+<script>
+/*
+  레벨 설계
+  N5: 일본어 → 한국어
+  N4: 한국어 → 일본어
+  N3: 한자/단어 → 읽기
+  N2: 문장 → 문맥상 의미
+  N1: 유의어/뉘앙스 구별
+  한 번의 훈련은 10문제.
+  80% 이상: 승급
+  60~79%: 유지
+  59% 이하: 한 단계 쉬운 난이도로 내려감
+*/
+const bank={
+N5:[
+["食べる","たべる","먹다"],["飲む","のむ","마시다"],["見る","みる","보다"],["行く","いく","가다"],["来る","くる","오다"],["学校","がっこう","학교"],["先生","せんせい","선생님"],["友達","ともだち","친구"],["今日","きょう","오늘"],["明日","あした","내일"],["大きい","おおきい","크다"],["小さい","ちいさい","작다"],["楽しい","たのしい","즐겁다"],["新しい","あたらしい","새롭다"],["駅","えき","역"],["電車","でんしゃ","전철"],["時間","じかん","시간"],["名前","なまえ","이름"],["家族","かぞく","가족"],["好き","すき","좋아하다"],["分かる","わかる","알다/이해하다"],["買う","かう","사다"],["使う","つかう","사용하다"],["話す","はなす","말하다"]
+],
+N4:[
+["約束","やくそく","약속"],["準備","じゅんび","준비"],["必要","ひつよう","필요"],["経験","けいけん","경험"],["理由","りゆう","이유"],["連絡","れんらく","연락"],["生活","せいかつ","생활"],["習慣","しゅうかん","습관"],["最近","さいきん","최근"],["特別","とくべつ","특별"],["簡単","かんたん","간단"],["大切","たいせつ","소중하다"],["安心","あんしん","안심"],["心配","しんぱい","걱정"],["説明","せつめい","설명"],["参加","さんか","참가"],["決める","きめる","결정하다"],["続ける","つづける","계속하다"],["間に合う","まにあう","시간에 맞다"],["忘れる","わすれる","잊다"],["比べる","くらべる","비교하다"],["選ぶ","えらぶ","고르다"],["伝える","つたえる","전하다"],["考える","かんがえる","생각하다"]
+],
+N3:[
+["改善","かいぜん","개선"],["影響","えいきょう","영향"],["環境","かんきょう","환경"],["関係","かんけい","관계"],["結果","けっか","결과"],["原因","げんいん","원인"],["解決","かいけつ","해결"],["確認","かくにん","확인"],["必要性","ひつようせい","필요성"],["可能性","かのうせい","가능성"],["意識","いしき","의식"],["判断","はんだん","판단"],["選択","せんたく","선택"],["努力","どりょく","노력"],["成長","せいちょう","성장"],["比較","ひかく","비교"],["利用","りよう","이용"],["理解","りかい","이해"],["発表","はっぴょう","발표"],["注意","ちゅうい","주의"],["態度","たいど","태도"],["目的","もくてき","목적"],["方法","ほうほう","방법"],["情報","じょうほう","정보"]
+],
+N2:[
+["妥当","だとう","타당하다"],["曖昧","あいまい","애매하다"],["効率","こうりつ","효율"],["傾向","けいこう","경향"],["課題","かだい","과제"],["基準","きじゅん","기준"],["根拠","こんきょ","근거"],["現状","げんじょう","현상/현재 상황"],["対策","たいさく","대책"],["適切","てきせつ","적절하다"],["複雑","ふくざつ","복잡하다"],["慎重","しんちょう","신중하다"],["客観的","きゃっかんてき","객관적"],["具体的","ぐたいてき","구체적"],["主張","しゅちょう","주장"],["傾向","けいこう","경향"],["解釈","かいしゃく","해석"],["判断材料","はんだんざいりょう","판단 자료"],["優先","ゆうせん","우선"],["維持","いじ","유지"]
+],
+N1:[
+["顕著","けんちょ","현저하다"],["懸念","けねん","우려"],["打開","だかい","타개"],["概ね","おおむね","대체로"],["促す","うながす","촉구하다"],["見込む","みこむ","예상하다"],["踏まえる","ふまえる","고려하다"],["伴う","ともなう","수반하다"],["妨げる","さまたげる","방해하다"],["補う","おぎなう","보충하다"],["兼ねる","かねる","겸하다"],["偏る","かたよる","치우치다"],["著しい","いちじるしい","현저하다"],["乏しい","とぼしい","부족하다"],["緩和","かんわ","완화"],["促進","そくしん","촉진"],["根強い","ねづよい","뿌리 깊다"],["見落とす","みおとす","간과하다"],["踏み込む","ふみこむ","깊이 파고들다"],["取り巻く","とりまく","둘러싸다"]
+]
+};
+
+const levels=["N5","N4","N3","N2","N1"];
+let levelIndex=0,questions=[],qi=0,score=0,miss=[],runHistory=[],lastResults=null;
+
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");scrollTo({top:0,behavior:"smooth"})}
+function newRun(){levelIndex=0;runHistory=[];prepare();show("quiz");render()}
+function continueTraining(){prepare();show("quiz");render()}
+function prepare(){
+ const level=levels[levelIndex],source=shuffle(bank[level]);
+ questions=source.slice(0,10);qi=0;score=0;miss=[];
+}
+function rankInfo(){return levels[levelIndex]}
+function makeQuestion(w){
+ const level=rankInfo();
+ let question,correct,options;
+ if(level==="N5"){
+  question="이 단어의 뜻은 무엇일까요?";
+  correct=w[2];
+  options=shuffle([correct,...shuffle(bank.N5.filter(x=>x[2]!==correct)).slice(0,2).map(x=>x[2])]);
+ }else if(level==="N4"){
+  question=`다음 뜻에 해당하는 일본어는?  「${w[2]}」`;
+  correct=w[0];
+  options=shuffle([correct,...shuffle(bank.N4.filter(x=>x[0]!==correct)).slice(0,2).map(x=>x[0])]);
+ }else if(level==="N3"){
+  question="다음 단어의 올바른 읽기는?";
+  correct=w[1];
+  options=shuffle([correct,...shuffle(bank.N3.filter(x=>x[1]!==correct)).slice(0,2).map(x=>x[1])]);
+ }else if(level==="N2"){
+  question=`「${w[2]}」에 가장 가까운 의미는?`;
+  correct=w[2];
+  options=shuffle([correct,...shuffle(bank.N2.filter(x=>x[2]!==correct)).slice(0,2).map(x=>x[2])]);
+ }else{
+  question=`「${w[0]}（${w[1]}）」의 의미로 가장 적절한 것은?`;
+  correct=w[2];
+  options=shuffle([correct,...shuffle(bank.N1.filter(x=>x[2]!==correct)).slice(0,2).map(x=>x[2])]);
+ }
+ return {question,correct,options};
+}
+function render(){
+ const w=questions[qi],q=makeQuestion(w),p=Math.round((qi+1)/questions.length*100);
+ document.getElementById("num").textContent=`문제 ${qi+1} / ${questions.length}`;
+ document.getElementById("percent").textContent=p+"%";
+ document.getElementById("rank").textContent=`🏅 ${rankInfo()} 레벨`;
+ document.getElementById("progressText").textContent=`${score}개 정답`;
+ document.getElementById("fill").style.width=p+"%";
+ document.getElementById("word").textContent=w[0];
+ document.getElementById("reading").textContent=(rankInfo()==="N5"||rankInfo()==="N4")?w[1]:"읽기를 문제에서 확인해 보세요";
+ document.getElementById("question").textContent=q.question;
+ const box=document.getElementById("answers");box.innerHTML="";
+ q.options.forEach(opt=>{
+  const b=document.createElement("button");b.className="answer";b.textContent=opt;
+  b.onclick=()=>answer(opt===q.correct,w,q.correct,opt);box.appendChild(b);
+ });
+}
+function answer(ok,w,correct,chosen){
+ if(ok)score++;else miss.push({word:w[0],reading:w[1],correct,chosen});
+ qi++;
+ if(qi<questions.length)render();else finish();
+}
+function finish(){
+ const old=levelIndex;
+ let action,desc;
+ if(score>=8){
+  if(levelIndex<levels.length-1){levelIndex++;action="⬆️ 레벨 업!";desc=`${score}/10점으로 ${levels[levelIndex]}에 승급했습니다! 다음 훈련부터 더 어려운 문제가 나옵니다.`}
+  else{action="🏆 최고 레벨!";desc=`${score}/10점! N1까지 도달했습니다. 정말 잘했어요!`}
+ }else if(score<=5){
+  if(levelIndex>0){levelIndex--;action="⬇️ 레벨 조정";desc=`${score}/10점입니다. 너무 급하게 올라가지 않도록 ${levels[levelIndex]}로 한 단계 낮췄어요.`}
+  else{action="💪 N5 재훈련";desc=`${score}/10점입니다. N5 단어를 조금 더 반복해 봅시다!`}
+ }else{action="➡️ 현재 레벨 유지";desc=`${score}/10점! ${levels[old]}를 한 번 더 연습한 뒤 승급에 도전해 보세요.`}
+ lastResults={old,score,action,desc};
+ runHistory.push({level:levels[old],score});
+ showResult();
+}
+function showResult(){
+ const r=lastResults;
+ document.getElementById("score").textContent=`${r.score} / 10`;
+ document.getElementById("feedback").innerHTML=`<h3>${r.action}</h3>`;
+ document.getElementById("promotion").textContent=r.desc;
+ const box=document.getElementById("review");
+ box.innerHTML=miss.length?miss.map(x=>`<div><strong>${x.word}</strong> <small>${x.reading}</small><br>정답: <span class="good">${x.correct}</span>　내 답: <span class="bad">${x.chosen}</span></div>`).join(""):'<div class="good">🎊 틀린 단어가 없습니다! 완벽합니다.</div>';
+ document.getElementById("currentRank").textContent=`현재 다음 도전 레벨: ${levels[levelIndex]}`;
+ document.getElementById("bestRank").textContent=`이번 기록: ${runHistory.map(x=>x.level+" "+x.score+"점").join(" → ")}`;
+ show("result");
+}
+</script>
+</body>
+</html>
