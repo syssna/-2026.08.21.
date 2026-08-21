@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -49,7 +50,10 @@
 <div class="promotion" id="promotion"></div>
 <div class="review"><h3>📚 이번에 복습할 단어</h3><div id="review"></div></div>
 <div class="history"><strong>📈 현재 랭크</strong><p id="currentRank"></p><p id="bestRank"></p></div>
-<br><button class="btn" onclick="continueTraining()">⚔️ 다음 훈련</button>
+<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:25px">
+<button class="btn" onclick="continueTraining()">⚔️ 다음 훈련</button>
+<button class="btn" style="background:#d94b4b" onclick="newRun()">🏠 처음부터</button>
+</div>
 </div>
 </section>
 </div>
@@ -167,6 +171,7 @@ function showResult(){
  box.innerHTML=miss.length?miss.map(x=>`<div><strong>${x.word}</strong> <small>${x.reading}</small><br>정답: <span class="good">${x.correct}</span>　내 답: <span class="bad">${x.chosen}</span></div>`).join(""):'<div class="good">🎊 틀린 단어가 없습니다! 완벽합니다.</div>';
  document.getElementById("currentRank").textContent=`현재 다음 도전 레벨: ${levels[levelIndex]}`;
  document.getElementById("bestRank").textContent=`이번 기록: ${runHistory.map(x=>x.level+" "+x.score+"점").join(" → ")}`;
+ show("result");
 }
 </script>
 </body>
