@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -109,7 +108,7 @@ function makeQuestion(w){
   correct=w[2];
   options=shuffle([correct,...shuffle(bank.N5.filter(x=>x[2]!==correct)).slice(0,2).map(x=>x[2])]);
  }else if(level==="N4"){
-  question=`다음 뜻에 해당하는 일본어는?  「${w[2]}」`;
+  question="다음 한국어 뜻에 해당하는 일본어 단어는?";
   correct=w[0];
   options=shuffle([correct,...shuffle(bank.N4.filter(x=>x[0]!==correct)).slice(0,2).map(x=>x[0])]);
  }else if(level==="N3"){
@@ -134,8 +133,17 @@ function render(){
  document.getElementById("rank").textContent=`🏅 ${rankInfo()} 레벨`;
  document.getElementById("progressText").textContent=`${score}개 정답`;
  document.getElementById("fill").style.width=p+"%";
- document.getElementById("word").textContent=w[0];
- document.getElementById("reading").textContent=(rankInfo()==="N5"||rankInfo()==="N4")?w[1]:"읽기를 문제에서 확인해 보세요";
+ const level=rankInfo();
+ if(level==="N4"){
+   document.getElementById("word").textContent=w[2];
+   document.getElementById("reading").textContent="한국어 뜻을 보고 일본어 단어를 골라보세요";
+ }else if(level==="N3"){
+   document.getElementById("word").textContent=w[0];
+   document.getElementById("reading").textContent="읽기를 골라보세요";
+ }else{
+   document.getElementById("word").textContent=w[0];
+   document.getElementById("reading").textContent=level==="N5"?w[1]:"읽기를 문제에서 확인해 보세요";
+ }
  document.getElementById("question").textContent=q.question;
  const box=document.getElementById("answers");box.innerHTML="";
  q.options.forEach(opt=>{
